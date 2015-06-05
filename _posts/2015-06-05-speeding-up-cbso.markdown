@@ -2,7 +2,6 @@
 layout: post
 title:  "Speeding up cbso.co.uk"
 date:   2015-06-05 15:30:00
-categories: varnish nginx perf
 ---
 
 # Speeding up cbso.co.uk
