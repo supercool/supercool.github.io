@@ -4,9 +4,9 @@ title:  "Speeding up cbso.co.uk"
 date:   2015-06-05 15:30:00
 ---
 
-Recently we launched a new website for the cbso built on [Craft CMS](http://buildwithcraft.com), it was a pretty exciting project for us all and was a lot of fun to work on. It was also the first time we got to use our new Box Office system that I’d spent the better part of 3 months building as it needed to display events and integrate with the Spektrix ticketing system to let users purchase tickets.
+Recently we launched a new website for the CBSO built on [Craft CMS](http://buildwithcraft.com), it was a pretty exciting project for us all and was a lot of fun to work on. It was also the first time we got to use our new Box Office system that I’d spent the better part of 3 months building as it needed to display events and integrate with the Spektrix ticketing system to let users purchase tickets.
 
-Whilst that went pretty much to plan one thing that didn’t go particularly well to begin with was the site speed. In this post I’m going to break down the highlights of what we did to take one of the the site’s key pages (the [upcoming concert season](https://cbso.co.uk/whats-on/season/2015-16)) from a whopping __7.92s__ initial load time to a much healthier __1.36__. To begin with I took a look at what was causing the huge load times and to no great surprise it was the server response time or, in geek language, the time to first byte (TTFB). That was a big chunk of the time - 6.32s. So, getting that down was a clear priority.
+Whilst that went pretty much to plan one thing that didn’t go particularly well to begin with was the site speed. In this post I’m going to break down the highlights of what we did to take one of the the site’s key pages (the [upcoming concert season](https://cbso.co.uk/whats-on/season/2015-16)) from a whopping __7.92s__ initial load time to a much healthier __1.36__. To begin with I took a look at what was causing the huge load times and to no great surprise it was the server response time or, in geek language, the time to first byte (TTFB). That was a big chunk of the time - __6.32s__. So, getting that down was a clear priority.
 
 
 ## First up; native caching in Craft.
