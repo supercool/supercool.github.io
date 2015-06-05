@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Speeding up cbso.co.uk"
+title:  "Making Craft sing with Varnish and nginx"
 date:   2015-06-05 15:30:00
 ---
 
