@@ -165,7 +165,7 @@ In my final load test I could get 2k concurrent users on the test page over peri
 
 To get some of these numbers I used [Flood](https://flood.io) for load testing and a combination of [Webpagetest](http://www.webpagetest.org/) and Chrome dev tools for page load times.
 
-### CacheMonstrr
+### CacheMuncher
 Yes - that’s what I called the plugin I’ve written to handle the purging and warming side of things. You will be able to download it just as soon as I’ve done the following:
 
 - Allow admins to turn off Varnish purging so that just the warming function is left active
