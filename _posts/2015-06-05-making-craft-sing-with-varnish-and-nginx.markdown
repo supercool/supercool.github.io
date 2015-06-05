@@ -43,8 +43,7 @@ Then I put the normal layout extending twig in another:
 
 {# file: events/_layouts/main #}
 
-{% cache for 1 day %}
-
+{% cache for 3 hours %}
 <html>
   <head>
     <title>Welcome</title>
@@ -55,7 +54,6 @@ Then I put the normal layout extending twig in another:
     {% endblock %}
   </body>
 </html>
-
 {% endcache %}
 
 {% endraw %}
@@ -71,7 +69,7 @@ And finally created a little controller template that either just chooses which 
 
   {% header "Content-Type: application/json" %}
 
-  {% cache for 1 day %}
+  {% cache for 3 hours %}
   {% spaceless %}
 
     {% set html %}{% include 'events/_logic-and-output' %}{% endset %}
@@ -96,7 +94,7 @@ Suffice to say I was scratching my head for a good few hours and at one point fi
 ### How long should we cache?
 Normally we cache everything for a whole day, and this works fine in most scenarios but for this site we have quite time sensitive information so I ended up caching some sections as low as 3 hours and leaving the rest set to a day.
 
-After implementing native caching we had a new TTFB of 347ms. A massive reduction from 6.32s!
+After implementing native caching we had a new TTFB of __347ms__. A massive reduction from __6.32s__!
 
 
 ## Next up; CDN & browser caching
@@ -110,6 +108,21 @@ This all helped with repeat views an awful lot, but obviously didn’t improve o
 ## Finally; Varnish
 
 Thankfully André Elvan had already done a bunch of the work for me, so I just used [his config](https://gist.github.com/aelvan/eba03969f91c1bd51c40) as a starting point and then went about [adapting it](https://gist.github.com/joshangell/540eca3cb16590537f54). To begin with I didn’t set a default amount of time to cache things for (time to live or TTL) in Varnish instead relying on setting it as a header in the template. This did work but of course the browser also used that cache time so would require a force reload to clear, which is not ideal in the slightest. To solve this I set my headers from Craft to not cache anything and instead set a default in Varnish, initially to 3 hours to match my lowest Craft cache time.
+
+The top of my layout file now looks something like this:
+
+{% highlight jinja %}
+{% raw %}
+
+{% header "Cache-Control: no-cache" %}
+{% header "Pragma: no-cache" %}
+
+{% cache for 1 day %}
+  ...
+{% endcache %}
+
+{% endraw %}
+{% endhighlight %}
 
 ### Ignore all the things
 Out of the box Andrés setup ignored the Craft admin, any POST requests and removed all cookies by default. This was great as it meant that the whole frontend got cached by Varnish but the backend didn’t and all our forms worked - so far so good. I discovered that removing cookies is important because Varnish won’t work properly if you try and use cookies server side so this threw up one small issue as we we’re using cookies at one point in the site. All I had to do though was set that cookie on the client side using JavaScript and I could move on.
