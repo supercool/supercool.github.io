@@ -109,17 +109,13 @@ This all helped with repeat views an awful lot, but obviously didn’t improve o
 
 Thankfully André Elvan had already done a bunch of the work for me, so I just used [his config](https://gist.github.com/aelvan/eba03969f91c1bd51c40) as a starting point and then went about [adapting it](https://gist.github.com/joshangell/540eca3cb16590537f54). To begin with I didn’t set a default amount of time to cache things for (time to live or TTL) in Varnish instead relying on setting it as a header in the template. This did work but of course the browser also used that cache time so would require a force reload to clear, which is not ideal in the slightest. To solve this I set my headers from Craft to not cache anything and instead set a default in Varnish, initially to 3 hours to match my lowest Craft cache time.
 
-The top of my layout file now looks something like this:
+Craft has a handy `{% header %}` tag which you can use to set the headers of a given template, so I just did this:
 
 {% highlight jinja %}
 {% raw %}
 
 {% header "Cache-Control: no-cache" %}
 {% header "Pragma: no-cache" %}
-
-{% cache for 1 day %}
-  ...
-{% endcache %}
 
 {% endraw %}
 {% endhighlight %}
@@ -138,7 +134,7 @@ Now I have the following stack:
 
 At present I have all of this running on one 2GB vps hosted with [Linode](https://linode.com) which seems a little mental to begin with but as it currently works fine I’m not too worried. Further down the line if the traffic really hots up I will likely split the nginx/Varnish setup off onto it’s own server but for now I’m leaving it as is.
 
-Now that we are successfully running Varnish in front of the site I can re-test all my times to see if it was all worth it, and it certainly was. For our test page I now get a TTFB of 25ms whereas without Varnish it was 290ms. The final load is 1.64s initially and 638ms for repeat views.
+Now that we are successfully running Varnish in front of the site I can re-test all my times to see if it was all worth it, and it certainly was. For our test page I now get a TTFB of __25ms__ whereas without Varnish it was __290ms__. The final load is __1.64s__ initially and __638ms__ for repeat views.
 
 ### Bust that cache
 Having proved that it was worth doing all this I set about solving the final part of the puzzle - how to purge the cache. At this point if a content editor updated an entry and saved it Varnish was just going to keep serving the stale content until either the expiry time was reached or that url was purged. I wanted someone to be able to press save and have the Varnish cache cleared.
