@@ -37,8 +37,27 @@ Then I put the normal layout extending twig in another:
 {% extends '_layouts/main' %}
 
 {% block main %}
-	{% include 'events/_logic-and-output' %}
+  {% include 'events/_logic-and-output' %}
 {% endblock %}
+
+
+{# file: events/_layouts/main #}
+
+{% cache for 1 day %}
+
+<html>
+  <head>
+    <title>Welcome</title>
+  </head>
+  <body>
+    {% block main %}
+      <p>Hello world</p>
+    {% endblock %}
+  </body>
+</html>
+
+{% endcache %}
+
 {% endraw %}
 {% endhighlight %}
 
@@ -50,23 +69,23 @@ And finally created a little controller template that either just chooses which 
 
 {% if craft.request.isAjax and not craft.request.isLivePreview %}
 
-	{% header "Content-Type: application/json" %}
+  {% header "Content-Type: application/json" %}
 
-	{% cache for 1 day %}
-	{% spaceless %}
+  {% cache for 1 day %}
+  {% spaceless %}
 
-		{% set html %}{% include 'events/_logic-and-output' %}{% endset %}
+    {% set html %}{% include 'events/_logic-and-output' %}{% endset %}
 
-		{
-			"html" : {{ html | json_encode() | raw }}
-		}
+    {
+      "html" : {{ html | json_encode() | raw }}
+    }
 
-	{% endspaceless %}
-	{% endcache %}
+  {% endspaceless %}
+  {% endcache %}
 
 {% else %}
 
-	{% include 'events/_output-via-layouts' %}
+  {% include 'events/_output-via-layouts' %}
 
 {% endif %}
 {% endraw %}
