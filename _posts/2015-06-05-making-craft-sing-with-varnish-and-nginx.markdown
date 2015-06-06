@@ -13,7 +13,7 @@ Whilst that went pretty much to plan one thing that didn’t go particularly wel
 This was a no brainer - as soon as we got close to going live I started working on getting Craft to cache the pages natively using the [cache tag](http://buildwithcraft.com/docs/templating/cache). We do this on every site we build now but this time there were a few awkward caveats to watch out for.
 
 ### AJAX
-A large chunk of the site was loading over AJAX, but using the same urls as the non-AJAX pages. This is nice because it allows us to do things like paginate quicker but still let people jump in half way through the paginated list. The issue I came up against was how to cache the main page and the AJAXed page separately, but still use the same code. In the end it was quite simple to solve, but if you're bored already then just skip ahead.
+A large chunk of the site was loading over AJAX, but using the same urls as the non-AJAX pages. This is nice because it allows us to do things like paginate quicker but still let people jump in half way through the paginated list. The issue I came up against was how to cache the main page and the AJAXed page separately, but still use the same code. In the end it was quite simple to solve, but if you're bored already then just [skip ahead](#how-long-should-we-cache).
 
 I put the twig logic and output in one template:
 
