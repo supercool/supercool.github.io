@@ -4,13 +4,17 @@ title:  "Making Craft sing with Varnish and nginx"
 date:   2015-06-05 15:30:00
 ---
 
-Recently we launched a [new website](https://cbso.co.uk) for the CBSO built on [Craft CMS](http://buildwithcraft.com), it was a pretty exciting project for us all and was a lot of fun to work on. It was also the first time we got to use our new Box Office system that I’d spent the better part of 3 months building as it needed to display events and integrate with the Spektrix ticketing system to let users purchase tickets.
+Recently we launched a [new website](https://cbso.co.uk) for the CBSO built on [Craft CMS](http://buildwithcraft.com), it was a pretty exciting project for us all and was a lot of fun to work on. It was also the first time we got to use our new Box Office system that I’d spent the better part of 3 months building as it needed to display events and integrate with the [Spektrix ticketing system](https://www.spektrix.com/) to let users purchase tickets.
 
-Whilst that went pretty much to plan one thing that didn’t go particularly well to begin with was the site speed. In this post I’m going to break down the highlights of what we did to take one of the the site’s key pages (the [upcoming concert season](https://cbso.co.uk/whats-on/season/2015-16)) from a whopping __7.92s__ initial load time to a much healthier __1.36__. To begin with I took a look at what was causing the huge load times and to no great surprise it was the server response time or, in geek language, the time to first byte (TTFB). That was a big chunk of the time - __6.32s__. So, getting that down was a clear priority.
+Whilst that went pretty much to plan one thing that didn’t go particularly well to begin with was the site speed. In this post I’m going to break down the highlights of what I did to take one of the the site’s key pages (the [upcoming concert season](https://cbso.co.uk/whats-on/season/2015-16)) from a whopping __7.92s__ initial load time to a much healthier __1.36__.
+
+To begin with I took a look at what was causing the huge load times and to no great surprise it was the server response time otherwise known as the time to first byte (TTFB). That was a big chunk of the time - __6.32s__ - so getting that down was a clear priority.
 
 
 ## First up; native caching in Craft.
 This was a no brainer - as soon as we got close to going live I started working on getting Craft to cache the pages natively using the [cache tag](http://buildwithcraft.com/docs/templating/cache). We do this on every site we build now but this time there were a few awkward caveats to watch out for.
+
+<!-- todo: ... we build now and there are plenty of interesting discussions and tutorials on the topic already, so I'll not go into the mechanics of this part here (with links) but this time ... -->
 
 ### AJAX
 A large chunk of the site was loading over AJAX, but using the same urls as the non-AJAX pages. This is nice because it allows us to do things like paginate quicker but still let people jump in half way through the paginated list. The issue I came up against was how to cache the main page and the AJAXed page separately, but still use the same code. In the end it was quite simple to solve, but if you're bored already then just [skip ahead](#how-long-should-we-cache).
@@ -100,6 +104,8 @@ After implementing native caching we had a new TTFB of __347ms__. A massive redu
 ## Next up; CDN & browser caching
 The next thing I did was to stick all our images and static assets on a CDN. Thankfully Amazon CloudFront makes this pretty easy to do for the static assets we host ourselves - I just followed their guide and it worked really quickly. For our client images we were storing them on Amazon S3 - which is a native feature of Craft. All I had to do there was tell Craft to output the new CDN url instead of the S3 one, which was also trivial.
 
+<!-- todo: picture example of cp here -->
+
 Finally I used a lot of the .htaccess rules from [this handy template](https://github.com/BarrelStrength/Craft-Master/blob/master/public/.htaccess) by the guys at Barrel Strength to get the browser to cache things properly so repeat views of our test page come in at around 900ms load time.
 
 This all helped with repeat views an awful lot, but obviously didn’t improve our TTFB at all.
@@ -121,12 +127,12 @@ Craft has a handy [header tag](http://buildwithcraft.com/docs/templating/header)
 {% endhighlight %}
 
 ### Ignore all the things
-Out of the box Andrés setup ignored the Craft admin, any POST requests and removed all cookies by default. This was great as it meant that the whole frontend got cached by Varnish but the backend didn’t and all our forms worked - so far so good. I discovered that removing cookies is important because Varnish won’t work properly if you try and use cookies server side so this threw up one small issue as we we’re using cookies at one point in the site. All I had to do though was set that cookie on the client side using JavaScript and I could move on.
+Out of the box Andrés setup ignored the Craft admin, any POST requests and removed all cookies by default. This was great as it meant that the whole frontend got cached by Varnish but the backend didn’t and all our forms worked - so far so good. I discovered that removing cookies is important because Varnish won’t work properly if you try and use cookies server side so this threw up one small issue as we were using cookies at one point in the site. All I had to do though was set and get that cookie on the client side using JavaScript and I could move on.
 
 Another thing I had to tell Varnish to ignore was all AJAX requests - if Varnish served a cached AJAX result in our situation it would lead to someone loading a page that was just a mush of json. I found this one out the hard way on the live site ... thankfully the fix was quick and easy, see [line 45 of my config](https://gist.github.com/joshangell/540eca3cb16590537f54#file-default-vcl-L45) for the syntax.
 
 ### SSL termination
-Sadly Varnish doesn’t work with SSL out of the box and our entire site is served over SSL so this was an important one to solve. After a bit of googling I noticed that nginx offers SSL termination - which means it will receive an SSL request from a client and pass that on as a normal http request to wherever you want it to. Having never used nginx at all there was a bit of a general learning curve for me at first but after I’d got it running in a basic manner I followed [this handy guide](https://www.digitalocean.com/community/tutorials/how-to-configure-varnish-cache-4-0-with-ssl-termination-on-ubuntu-14-04) from DigitalOcean on how to configure nginx correctly so it would pass my https requests to Varnish over http.
+Sadly Varnish doesn’t work with SSL out of the box and our entire site is served over SSL so this was an important one to solve. After a bit of googling I noticed that nginx offers SSL termination - which means it will receive an SSL request from a client and pass that on as a normal http request to wherever you want it to. Having never used nginx at all there was a bit of a steep learning curve for me at first but after I’d got it running in a basic manner I followed [this handy guide](https://www.digitalocean.com/community/tutorials/how-to-configure-varnish-cache-4-0-with-ssl-termination-on-ubuntu-14-04) from DigitalOcean on how to configure nginx correctly so it would pass my https requests to Varnish over http.
 
 Now I have the following stack:
 
