@@ -102,7 +102,7 @@ After implementing native caching we had a new TTFB of __347ms__. A massive redu
 ## Next up; CDN & browser caching
 The next thing I did was to stick all our images and static assets on a CDN. Thankfully Amazon CloudFront makes this pretty easy to do for the static assets we host ourselves - I just followed their guide and it worked really quickly. For our client images we were storing them on Amazon S3 - which is a native feature of Craft. All I had to do there was tell Craft to output the new CDN url instead of the S3 one, which was also trivial.
 
-![Assets S3 settings](images/cbso-cdn-prefix.jpg)
+![Assets S3 settings](/images/cbso-s3-prefix.jpg)
 
 Finally I used a lot of the .htaccess rules from [this handy template](https://github.com/BarrelStrength/Craft-Master/blob/master/public/.htaccess) by the guys at Barrel Strength to get the browser to cache things properly so repeat views of our test page come in at around 900ms load time.
 
