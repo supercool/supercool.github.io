@@ -108,7 +108,7 @@ The next thing I did was to stick all our images and static assets on a CDN. Tha
 
 Finally I used a lot of the .htaccess rules from [this handy template](https://github.com/BarrelStrength/Craft-Master/blob/master/public/.htaccess) by the guys at Barrel Strength to get the browser to cache things properly so repeat views of our test page come in at around 900ms load time.
 
-This all helped with repeat views an awful lot, but obviously didn’t improve our TTFB at all.
+Implementing both these stages is important and should not be missed out but obviously it didn’t improve our TTFB at all, so there was still a good 300ms that I knew could be squashed.
 
 
 ## Finally; Varnish
