@@ -14,7 +14,7 @@ To begin with I took a look at what was causing the huge load times and to no gr
 ## First up; native caching in Craft.
 This was a no brainer - as soon as we got close to going live I started working on getting Craft to cache the pages natively using the [cache tag](http://buildwithcraft.com/docs/templating/cache). We do this on every site we build now but this time there were a few awkward caveats to watch out for.
 
-<!-- todo: ... we build now and there are plenty of interesting discussions and tutorials on the topic already, so I'll not go into the mechanics of this part here (with links) but this time ... -->
+<!-- todo: ... we build now and there are plenty of interesting [discussions](https://straightupcraft.com/articles/the-cache-tag) and [tutorials](http://www.patpohler.com/performance-optimization-craft-cms/) on the topic already, so I'll not go into the mechanics of this part here but this time ... -->
 
 ### AJAX
 A large chunk of the site was loading over AJAX, but using the same urls as the non-AJAX pages. This is nice because it allows us to do things like paginate quicker but still let people jump in half way through the paginated list. The issue I came up against was how to cache the main page and the AJAXed page separately, but still use the same code. In the end it was quite simple to solve, but if you're bored already then just [skip ahead](#how-long-should-we-cache).
@@ -104,14 +104,14 @@ After implementing native caching we had a new TTFB of __347ms__. A massive redu
 ## Next up; CDN & browser caching
 The next thing I did was to stick all our images and static assets on a CDN. Thankfully Amazon CloudFront makes this pretty easy to do for the static assets we host ourselves - I just followed their guide and it worked really quickly. For our client images we were storing them on Amazon S3 - which is a native feature of Craft. All I had to do there was tell Craft to output the new CDN url instead of the S3 one, which was also trivial.
 
-<!-- todo: picture example of cp here -->
+![Assets S3 settings]({{ "/images/cbso-cdn-prefix.jpg" | prepend: site.baseurl }})
 
 Finally I used a lot of the .htaccess rules from [this handy template](https://github.com/BarrelStrength/Craft-Master/blob/master/public/.htaccess) by the guys at Barrel Strength to get the browser to cache things properly so repeat views of our test page come in at around 900ms load time.
 
-Implementing both these stages is important and should not be missed out but obviously it didn’t improve our TTFB at all, so there was still a good 300ms that I knew could be squashed.
+Implementing both these stages is important and should not be missed out but obviously it didn’t improve our TTFB at all, so there was still a good 300ms that I knew could be squashed. If you want a more detailed breakdown of how to achieve these more general performance optimizations then I refer you to [this article](http://www.patpohler.com/performance-optimization-craft-cms/) by Patrick Pohler.
 
 
-## Finally; Varnish
+## Finally; Varnish, fix my TTFB
 
 Thankfully André Elvan had already done a bunch of the work for me, so I just used [his config](https://gist.github.com/aelvan/eba03969f91c1bd51c40) as a starting point and then went about [adapting it](https://gist.github.com/joshangell/540eca3cb16590537f54). To begin with I didn’t set a default amount of time to cache things for (time to live or TTL) in Varnish instead relying on setting it as a header in the template. This did work but of course the browser also used that cache time so would require a force reload to clear, which is not ideal in the slightest. To solve this I set my headers from Craft to not cache anything and instead set a default in Varnish, initially to 3 hours to match my lowest Craft cache time.
 
