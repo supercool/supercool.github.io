@@ -7,8 +7,9 @@
     <div class="footer-col-wrapper">
       <div class="footer-col  footer-col-1">
         <ul class="contact-list">
-          <li>{{ site.title }}</li>
-          <li><a href="mailto:{{ site.email }}">{{ site.email }}</a></li>
+          {% assign contact = site.authors.first %}
+          <li>{{ contact.name }}</li>
+          <li><a href="mailto:{{ contact.email }}">{{ contact.email }}</a></li>
         </ul>
       </div>
 

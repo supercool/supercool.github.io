@@ -1,7 +1,8 @@
 ---
 layout: post
 title:  "Making Craft sing with Varnish and nginx"
-date:   2015-06-05 15:30:00
+date:   2015-06-08 10:00:00
+author: joshangell
 ---
 
 Recently we launched a [new website](https://cbso.co.uk) for the CBSO built on [Craft CMS](http://buildwithcraft.com), it was a pretty exciting project for us all and was a lot of fun to work on. It was also the first time we got to use our new Box Office system that I’d spent the better part of 3 months building as it needed to display events and integrate with the [Spektrix ticketing system](https://www.spektrix.com/) to let users purchase tickets.

@@ -1,5 +1,5 @@
 # Site settings
-title: Engineering Supercool
+title: Supercool Engineering
 email: dev@supercooldesign.co.uk
 description: var_dump() from the geekier side of <a href="http://supercooldesign.co.uk" target="_blank">Supercool</a>
 metadesc: var_dump() from the geekier side of Supercool
@@ -7,6 +7,19 @@ baseurl: "" # the subpath of your site, e.g. /blog/
 url: "https://supercool.github.io" # the base hostname & protocol for your site
 twitter_username: supercooldesign
 github_username:  supercool
+authors: [
+  {
+    handle : joshangell,
+    name : Josh Angell,
+    email : josh@supercooldesign.co.uk
+  },
+  {
+    handle : joshainsworth,
+    name : Josh Ainsworth,
+    email : josh.ainsworth@supercooldesign.co.uk
+  }
+]
+
 
 # Build settings
 markdown: kramdown
