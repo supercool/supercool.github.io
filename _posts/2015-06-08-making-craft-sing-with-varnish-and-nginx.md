@@ -7,9 +7,9 @@ author: Josh Angell
 
 Recently we launched a [new website](https://cbso.co.uk) for the CBSO built on [Craft CMS](http://buildwithcraft.com), it was a pretty exciting project for us all and was a lot of fun to work on. It was also the first time we got to use our new Box Office system that I’d spent the better part of 3 months building as it needed to display events and integrate with the [Spektrix ticketing system](https://www.spektrix.com/) to let users purchase tickets.
 
-Whilst that went pretty much to plan one thing that didn’t go particularly well to begin with was the site speed. In this post I’m going to break down the highlights of what I did to take one of the the site’s key pages (the [upcoming concert season](https://cbso.co.uk/whats-on/season/2015-16)) from a whopping __7.92s__ initial load time to a much healthier __1.36__.
+Whilst that went pretty much to plan one thing that didn’t go particularly well to begin with was the site speed. In this post I’m going to break down the highlights of what I did to take one of the the site’s key pages (the [upcoming concert season](https://cbso.co.uk/whats-on/season/2015-16)) from a whopping __~6.5s__ initial load time to a much healthier __~800ms__.
 
-To begin with I took a look at what was causing the huge load times and to no great surprise it was the server response time otherwise known as the time to first byte (TTFB). That was a big chunk of the time - __6.32s__ - so getting that down was a clear priority.
+To begin with I took a look at what was causing the huge load times and to no great surprise it was the server response time otherwise known as the time to first byte (TTFB). That was a big chunk of the time - __~5.5s__ - so getting that down was a clear priority.
 
 
 ## First up; native caching in Craft.
@@ -97,7 +97,7 @@ Suffice to say I was scratching my head for a good few hours and at one point fi
 ### How long should we cache?
 Normally we cache everything for a whole day, and this works fine in most scenarios but for this site we have quite time sensitive information so I ended up caching some sections as low as 3 hours and leaving the rest set to a day.
 
-After implementing native caching we had a new TTFB of __347ms__. A massive reduction from __6.32s__!
+After implementing native caching we had a new TTFB of __~260ms__ (a massive reduction from __~5.5s__!) which is much more acceptable.
 
 
 ## Next up; CDN & browser caching
@@ -105,9 +105,9 @@ The next thing I did was to stick all our images and static assets on a CDN. Tha
 
 ![Assets S3 settings](/images/cbso-s3-prefix.jpg)
 
-Finally I used a lot of the .htaccess rules from [this handy template](https://github.com/BarrelStrength/Craft-Master/blob/master/public/.htaccess) by the guys at Barrel Strength to get the browser to cache things properly so repeat views of our test page come in at around 900ms load time.
+Finally I used a lot of the .htaccess rules from [this handy template](https://github.com/BarrelStrength/Craft-Master/blob/master/public/.htaccess) by the guys at Barrel Strength to get the browser to cache things properly so repeat views of our test page come in at __~900ms__ load time (initial load time was __~1.3s__).
 
-Implementing both these stages is important and should not be missed out but obviously it didn’t improve our TTFB at all, so there was still a good 300ms that I knew could be squashed. If you want a more detailed breakdown of how to achieve these more general performance optimizations then I refer you to [this article](http://www.patpohler.com/performance-optimization-craft-cms/) by Patrick Pohler.
+Implementing both these stages is important and should not be missed out but obviously it didn’t improve our TTFB at all, so there was still a good 200ms that I knew could be squashed. If you want a more detailed breakdown of how to achieve these more general performance optimizations then I refer you to [this article](http://www.patpohler.com/performance-optimization-craft-cms/) by Patrick Pohler.
 
 
 ## Finally; Varnish, fix my TTFB
@@ -139,7 +139,7 @@ Now I have the following stack:
 
 At present I have all of this running on one 2GB vps hosted with [Linode](https://linode.com) which seems a little mental to begin with but as it currently works fine I’m not too worried. Further down the line if the traffic really hots up I will likely split the nginx/Varnish setup off onto it’s own server but for now I’m leaving it as is.
 
-Now that we are successfully running Varnish in front of the site I can re-test all my times to see if it was all worth it, and it certainly was. For our test page I now get a TTFB of __25ms__ whereas without Varnish it was __290ms__. The final load is __1.64s__ initially and __638ms__ for repeat views.
+Now that we are successfully running Varnish in front of the site I can re-test all my times to see if it was all worth it, and it certainly was. For our test page I now get a TTFB of __~25ms__ whereas without Varnish it was __~260ms__. The final load is __~800ms__ initially and __~500ms__ for repeat views.
 
 ### Bust that cache
 Having proved that it was worth doing all this I set about solving the final part of the puzzle - how to purge the cache. At this point if a content editor updated an entry and saved it Varnish was just going to keep serving the stale content until either the expiry time was reached or that url was purged. I wanted someone to be able to press save and have the Varnish cache cleared.
@@ -168,9 +168,9 @@ So there we have it - one much speedier website that gets completely refreshed e
 
 In my final load test I could get 2k concurrent users on the test page over period of 5 minutes without the server falling over. Not bad for a single 2GB instance! Before all of this, even with Craft caching I could only get 200.
 
-To get some of these numbers I used [Flood](https://flood.io) for load testing and a combination of [Webpagetest](http://www.webpagetest.org/) and Chrome dev tools for page load times.
+To get some of these numbers I used [Flood](https://flood.io) for load testing, [Webpagetest](http://www.webpagetest.org/) for checking my general performance optimizations and Chrome dev tools for page load times. It should be noted that my internet connection is pretty good and I have only done basic averaging with the numbers.
 
-### CacheMuncher
+### CacheMunchrr
 Yes - that’s what I called the plugin I’ve written to handle the purging and warming side of things. You will be able to download it just as soon as I’ve done the following:
 
 - Allow admins to turn off Varnish purging so that just the warming function is left active
