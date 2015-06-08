@@ -170,8 +170,5 @@ In my final load test I could get 2k concurrent users on the test page over peri
 
 To get some of these numbers I used [Flood](https://flood.io) for load testing, [Webpagetest](http://www.webpagetest.org/) for checking my general performance optimizations and Chrome dev tools for page load times. It should be noted that my internet connection is pretty good and I have only done basic averaging with the numbers.
 
-### CacheMunchrr
-Yes - that’s what I called the plugin I’ve written to handle the purging and warming side of things. You will be able to download it just as soon as I’ve done the following:
-
-- Allow admins to turn off Varnish purging so that just the warming function is left active
-- Allow admins to set the paths of their sitemaps in the cp
+### CacheMonster
+Yes - that’s what I called the plugin I’ve written to handle the purging and warming side of things. You can download it [here](http://plugins.supercooldesign.co.uk/plugin/cache-monster).
