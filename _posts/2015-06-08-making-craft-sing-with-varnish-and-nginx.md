@@ -7,9 +7,9 @@ author: Josh Angell
 
 Recently we launched a [new website](https://cbso.co.uk) for the CBSO built on [Craft CMS](http://buildwithcraft.com), it was a pretty exciting project for us all and was a lot of fun to work on. It was also the first time we got to use our new Box Office system that I’d spent the better part of 3 months building as it needed to display events and integrate with the [Spektrix ticketing system](https://www.spektrix.com/) to let users purchase tickets.
 
-Whilst that went pretty much to plan one thing that didn’t go particularly well to begin with was the site speed. In this post I’m going to break down the highlights of what I did to take one of the the site’s key pages (the [upcoming concert season](https://cbso.co.uk/whats-on/season/2015-16)) from a whopping __~6.5s__ initial load time to a much healthier __~800ms__.
+Whilst that went pretty much to plan one thing that didn’t go particularly well to begin with was the site speed. In this post I’m going to break down the highlights of what I did to take one of the the site’s key pages (the [upcoming concert season](https://cbso.co.uk/whats-on/season/2015-16)) from a whopping __~6.5s__ initial load time to a much <br>healthier __~800ms__.
 
-To begin with I took a look at what was causing the huge load times and to no great surprise it was the server response time otherwise known as the time to first byte (TTFB). That was a big chunk of the time - __~5.5s__ - so getting that down was a clear priority.
+To begin with I took a look at what was causing the huge load times and to no great surprise it was the server response time otherwise known as the time to first byte (TTFB). That was a big chunk of the <br>time (~5.5s) so getting that down was a clear priority.
 
 
 ## First up; native caching in Craft.
