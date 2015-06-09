@@ -128,7 +128,13 @@ Craft has a handy [header tag](http://buildwithcraft.com/docs/templating/header)
 ### Ignore all the things
 Out of the box Andrés setup ignored the Craft admin, any POST requests and removed all cookies by default. This was great as it meant that the whole frontend got cached by Varnish but the backend didn’t and all our forms worked - so far so good. I discovered that removing cookies is important because Varnish won’t work properly if you try and use cookies server side so this threw up one small issue as we were using cookies at one point in the site. All I had to do though was set and get that cookie on the client side using JavaScript and I could move on.
 
-Another thing I had to tell Varnish to ignore was all AJAX requests - if Varnish served a cached AJAX result in our situation it would lead to someone loading a page that was just a mush of json. I found this one out the hard way on the live site ... thankfully the fix was quick and easy, see [line 45 of my config](https://gist.github.com/joshangell/540eca3cb16590537f54#file-default-vcl-L45) for the syntax.
+<del>Another thing I had to tell Varnish to ignore was all AJAX requests - if Varnish served a cached AJAX result in our situation it would lead to someone loading a page that was just a mush of json. I found this one out the hard way on the live site ... thankfully the fix was quick and easy, see [line 45 of my config](https://gist.github.com/joshangell/540eca3cb16590537f54#file-default-vcl-L45) for the syntax.</del>
+
+__UPDATE:__ I don’t actually need to ignore AJAX requests, I can just include the `req.http.X-Requested-With` header in the hash that Varnish stores. This would be much better, so I just added [this line](https://gist.github.com/joshangell/540eca3cb16590537f54#file-default-vcl-L195) to my `vcl_hash` section:
+
+    hash_data(req.http.X-Requested-With);
+
+Thanks to André for pointing this out in the comments, I basically owe most of my Varnish knowledge to this guy ...
 
 ### SSL termination
 Sadly Varnish doesn’t work with SSL out of the box and our entire site is served over SSL so this was an important one to solve. After a bit of googling I noticed that nginx offers SSL termination - which means it will receive an SSL request from a client and pass that on as a normal http request to wherever you want it to. Having never used nginx at all there was a bit of a steep learning curve for me at first but after I’d got it running in a basic manner I followed [this handy guide](https://www.digitalocean.com/community/tutorials/how-to-configure-varnish-cache-4-0-with-ssl-termination-on-ubuntu-14-04) from DigitalOcean on how to configure nginx correctly so it would pass my https requests to Varnish over http.
