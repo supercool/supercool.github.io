@@ -134,7 +134,7 @@ __UPDATE:__ I don’t actually need to ignore AJAX requests, I can just include 
 
     hash_data(req.http.X-Requested-With);
 
-Thanks to André for pointing this out in the comments, I basically owe most of my Varnish knowledge to this guy ...
+Thanks to André for [pointing this out](#comment-2068802816) in the comments, I basically owe most of my Varnish knowledge to this guy ...
 
 ### SSL termination
 Sadly Varnish doesn’t work with SSL out of the box and our entire site is served over SSL so this was an important one to solve. After a bit of googling I noticed that nginx offers SSL termination - which means it will receive an SSL request from a client and pass that on as a normal http request to wherever you want it to. Having never used nginx at all there was a bit of a steep learning curve for me at first but after I’d got it running in a basic manner I followed [this handy guide](https://www.digitalocean.com/community/tutorials/how-to-configure-varnish-cache-4-0-with-ssl-termination-on-ubuntu-14-04) from DigitalOcean on how to configure nginx correctly so it would pass my https requests to Varnish over http.
