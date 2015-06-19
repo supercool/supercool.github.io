@@ -17,6 +17,13 @@
 
     {% include analytics.html %}
 
+    <script type="text/javascript">
+      var host = "supercool.github.io"
+      if (window.location.host == host && window.location.protocol != "https:") {
+        window.location.protocol = "https:"
+      }
+    </script>
+
   </body>
 
 </html>
