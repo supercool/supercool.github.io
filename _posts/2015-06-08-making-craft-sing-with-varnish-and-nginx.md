@@ -147,6 +147,8 @@ At present I have all of this running on one 2GB vps hosted with [Linode](https:
 
 Now that we are successfully running Varnish in front of the site I can re-test all my times to see if it was all worth it, and it certainly was. For our test page I now get a TTFB of __~25ms__ whereas without Varnish it was __~260ms__. The final load is __~800ms__ initially and __~500ms__ for repeat views.
 
+__UPDATE:__ I ran into some issues with the backend not responding in time (I think) and causing nginx and / or Varnish to get stroppy and throw an error. This turned out quite hard to debug in the end and as my experimental timeframe was up and we don’t get enough traffic on this particular site to warrant the time spent working it out I took the nginx / Varnish part out of the stack. For a while I left in the cache warming but as we were also running a 3 hourly sync with Spektrix that got a bit heavy for the server now Varnish wasn’t involved, so I took that off as well.
+
 ### Bust that cache
 Having proved that it was worth doing all this I set about solving the final part of the puzzle - how to purge the cache. At this point if a content editor updated an entry and saved it Varnish was just going to keep serving the stale content until either the expiry time was reached or that url was purged. I wanted someone to be able to press save and have the Varnish cache cleared.
 
