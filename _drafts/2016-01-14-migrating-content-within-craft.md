@@ -5,7 +5,7 @@ date:   2016-01-14 10:00:00
 author: Josh Angell
 ---
 
-Recently as part of some site upgrades I’ve had a couple of jobs that have needed to copy some entries from one section in Craft to another, complete with content. I figured I would just show you all what I did, in case it helps anyone else out!
+Recently as part of some site upgrades I’ve had a couple of jobs that have needed to copy some entries from one section in Craft to another, complete with content. I’m mainly putting this here for my own future reference but if it helps anyone else out then thats a bonus :)
 
 There was a bunch of content in a Matrix that was the biggest issue and a few other non-relational fields. Crucially the original content needed to remain un-touched so I couldn’t just flip the `sectionId` of the elements in the database.
 
@@ -15,9 +15,10 @@ Also worth nothing is that I’ve used various IDs throughout the code - these c
 
 ## Task 1 - MigrationManager
 
-This simply gets the elements we want to migrate and runs a sub Task for each batch.
+Here we simply get the elements we want to migrate and run a sub Task for each batch.
 
-```php
+{% highlight php %}
+{% raw %}
 <?php
 
 namespace Craft;
@@ -80,16 +81,17 @@ class MyPlugin_MigrateManagerTask extends BaseTask
   }
 
 }
+{% endraw %}
+{% endhighlight %}
 
-```
 
 
 ## Task 2 - Migrate
 
 This Task handles the heavy lifting of duplicating content and saving the new Entry.
 
-```php
-
+{% highlight php %}
+{% raw %}
 <?php
 
 namespace Craft;
@@ -261,4 +263,5 @@ class MyPlugin_MigrateTask extends BaseTask
   }
 
 }
-```
+{% endraw %}
+{% endhighlight %}
