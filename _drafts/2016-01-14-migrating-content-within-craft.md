@@ -157,7 +157,7 @@ class MyPlugin_MigrateTask extends BaseTask
 
     // Copy the blocks from a Matrix field - be aware that if the target
     // element already exists and has blocks they will be lost.
-    // ref: http://craftcms.stackexchange.com/a/11781/144
+    // ref: https://craftcms.stackexchange.com/questions/8517/duplicating-matrix-fields-with-content-from-another-locale
     $newBlocks = array();
     $i = 0;
 
@@ -265,3 +265,6 @@ class MyPlugin_MigrateTask extends BaseTask
 }
 {% endraw %}
 {% endhighlight %}
+
+
+# TODO: Controller to fire it
