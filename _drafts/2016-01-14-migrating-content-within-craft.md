@@ -100,16 +100,6 @@ class MyPlugin_MigrateTask extends BaseTask
 {
 
   /**
-   * @inheritDoc ITask::getDescription()
-   *
-   * @return string
-   */
-  public function getDescription()
-  {
-    return Craft::t('Migrating ...');
-  }
-
-  /**
    * @inheritDoc ITask::getTotalSteps()
    *
    * @return int
@@ -128,124 +118,7 @@ class MyPlugin_MigrateTask extends BaseTask
    */
   public function runStep($step)
   {
-    // Again, bump the memory
-    craft()->config->set('phpMaxMemoryLimit', '2560M');
-    craft()->config->maxPowerCaptain();
-
-    // Get the element we want to copy from
-    $element = $this->getSettings()->elements[$step];
-
-    // See if the one we are copying to already exists.
-    // What you use to determine this will vary, in this case I just
-    // used the title but you may need something more bullet proof.
-    $criteria = craft()->elements->getCriteria(ElementType::Entry);
-    $criteria->enabled   = null;
-    $criteria->limit     = null;
-    $criteria->status    = null;
-    $criteria->sectionId = 22;
-    $criteria->title     = $element->getContent()->title;
-    $targetElement       = $criteria->first();
-
-    // If we didn’t get an existing element, make one here
-    if (!$targetElement) {
-      $targetElement = new EntryModel();
-      $targetElement->sectionId = 22;
-      $targetElement->typeId    = 23;
-    }
-
-    // XXX This is where it gets fun - copy your field content!
-
-    // Copy the blocks from a Matrix field - be aware that if the target
-    // element already exists and has blocks they will be lost.
-    // ref: https://craftcms.stackexchange.com/questions/8517/duplicating-matrix-fields-with-content-from-another-locale
-    $newBlocks = array();
-    $i = 0;
-
-    foreach ($element->myMatrixField->find() as $block)
-    {
-      // Setup a new block
-      $newBlock = new MatrixBlockModel();
-      $newBlock->fieldId = 4;
-      $newBlock->typeId  = $block->getType()->id;
-      $newBlock->ownerId = $targetElement->id;
-      $newBlock->locale  = $block->locale;
-
-      $newBlockContent = $newBlock->getContent();
-
-      $values = array();
-
-      // Loop the fields on this block
-      foreach ($block->getFieldLayout()->getFields() as $blockFieldLayoutField)
-      {
-        $field = $blockFieldLayoutField->getField();
-        $fieldHandle = $field->handle;
-
-        // Cope with element fields by getting an array of their IDs
-        if (in_array($field->type, array('Assets', 'Entries', 'Categories', 'Tags'))) {
-          $value = $block->$fieldHandle->ids();
-        } else {
-          $value = $block->$fieldHandle;
-        }
-
-        $values[$fieldHandle] = $value;
-      }
-
-      // Set the content on the new block
-      $newBlock->setContentFromPost($values);
-
-      $newBlocks['new'.$i] = $newBlock;
-      $i++;
-    }
-
-    // Set the content on the target element
-    $targetElement->setContent(array(
-      'title' => $element->getContent()->title,
-      'myMatrixField' => $newBlocks,
-
-      // Same as before, just get the IDs of relationship fields
-      'someAssetField' => $element->someAssetField->ids(),
-
-      // Simpler fields can just be directly copied
-      'someSimpleTextField' => $element->someSimpleTextField,
-    ));
-
-    // Wrap in a transaction in case something goes wrong
-    $transaction = craft()->db->getCurrentTransaction() === null ? craft()->db->beginTransaction() : null;
-    try {
-
-      // Try and save, throw an exception if it didn’t for some reason
-      if (!craft()->entries->saveEntry($targetElement)) {
-
-        // Try and get the errors so the log is more useful
-        if ($targetElement->hasErrors()) {
-          $firstError = array_shift($targetElement->getErrors())[0];
-          throw new Exception(Craft::t('Couldn’t migrate from {title}. First error to correct: {error}', array('title' => $element->title, 'error' => firstError)));
-        } else {
-          throw new Exception(Craft::t('Couldn’t migrate from {title}.', array('title' => $element->title)));
-        }        
-
-      }
-
-      if ($transaction !== null)
-      {
-        $transaction->commit();
-      }
-
-    } catch (Exception $e) {
-
-      if ($transaction !== null)
-      {
-        $transaction->rollback();
-      }
-
-      // Log that exception message so we can debug it in the log viewer
-      MyPlugin::log($e->getMessage(), LogLevel::Error);
-      return $e->getMessage();
-
-    }
-
-    return true;
-
+    // Migration logic
   }
 
   /**
@@ -267,4 +140,136 @@ class MyPlugin_MigrateTask extends BaseTask
 {% endhighlight %}
 
 
-# TODO: Controller to fire it
+So, inside the `runStep()` method we get the correct element from the settings array and migrate it to the new section.
+
+{% highlight php %}
+{% raw %}
+// Again, bump the memory
+craft()->config->set('phpMaxMemoryLimit', '2560M');
+craft()->config->maxPowerCaptain();
+
+// Get the element we want to copy from
+$element = $this->getSettings()->elements[$step];
+{% endraw %}
+{% endhighlight %}
+
+
+First, check if the one we are copying to already exists or not. What you use to determine this will vary, in this case I just used the title but you may need something more bullet proof.
+
+{% highlight php %}
+{% raw %}
+$criteria = craft()->elements->getCriteria(ElementType::Entry);
+$criteria->enabled   = null;
+$criteria->limit     = null;
+$criteria->status    = null;
+$criteria->sectionId = 22;
+$criteria->title     = $element->getContent()->title;
+$targetElement       = $criteria->first();
+
+// If we didn’t get an existing element, make one here
+if (!$targetElement) {
+  $targetElement = new EntryModel();
+  $targetElement->sectionId = 22;
+  $targetElement->typeId    = 23;
+}
+{% endraw %}
+{% endhighlight %}
+
+Next, copy across your field content - be aware that if the target element already exists and has content in the field then that content will be lost.
+
+// Copy the blocks from a Matrix field -
+// ref: https://craftcms.stackexchange.com/questions/8517/duplicating-matrix-fields-with-content-from-another-locale
+$newBlocks = array();
+$i = 0;
+
+foreach ($element->myMatrixField->find() as $block)
+{
+  // Setup a new block
+  $newBlock = new MatrixBlockModel();
+  $newBlock->fieldId = 4;
+  $newBlock->typeId  = $block->getType()->id;
+  $newBlock->ownerId = $targetElement->id;
+  $newBlock->locale  = $block->locale;
+
+  $newBlockContent = $newBlock->getContent();
+
+  $values = array();
+
+  // Loop the fields on this block
+  foreach ($block->getFieldLayout()->getFields() as $blockFieldLayoutField)
+  {
+    $field = $blockFieldLayoutField->getField();
+    $fieldHandle = $field->handle;
+
+    // Cope with element fields by getting an array of their IDs
+    if (in_array($field->type, array('Assets', 'Entries', 'Categories', 'Tags'))) {
+      $value = $block->$fieldHandle->ids();
+    } else {
+      $value = $block->$fieldHandle;
+    }
+
+    $values[$fieldHandle] = $value;
+  }
+
+  // Set the content on the new block
+  $newBlock->setContentFromPost($values);
+
+  $newBlocks['new'.$i] = $newBlock;
+  $i++;
+}
+
+// Set the content on the target element
+$targetElement->setContent(array(
+  'title' => $element->getContent()->title,
+  'myMatrixField' => $newBlocks,
+
+  // Same as before, just get the IDs of relationship fields
+  'someAssetField' => $element->someAssetField->ids(),
+
+  // Simpler fields can just be directly copied
+  'someSimpleTextField' => $element->someSimpleTextField,
+));
+
+// Wrap in a transaction in case something goes wrong
+$transaction = craft()->db->getCurrentTransaction() === null ? craft()->db->beginTransaction() : null;
+try {
+
+  // Try and save, throw an exception if it didn’t for some reason
+  if (!craft()->entries->saveEntry($targetElement)) {
+
+    // Try and get the errors so the log is more useful
+    if ($targetElement->hasErrors()) {
+      $firstError = array_shift($targetElement->getErrors())[0];
+      throw new Exception(Craft::t('Couldn’t migrate from {title}. First error to correct: {error}', array('title' => $element->title, 'error' => firstError)));
+    } else {
+      throw new Exception(Craft::t('Couldn’t migrate from {title}.', array('title' => $element->title)));
+    }        
+
+  }
+
+  if ($transaction !== null)
+  {
+    $transaction->commit();
+  }
+
+} catch (Exception $e) {
+
+  if ($transaction !== null)
+  {
+    $transaction->rollback();
+  }
+
+  // Log that exception message so we can debug it in the log viewer
+  MyPlugin::log($e->getMessage(), LogLevel::Error);
+  return $e->getMessage();
+
+}
+
+return true;
+
+
+
+TODO: Break code up into logical chunks and then provide a gist or zip of the
+      files at the end (https://gist.github.com/joshangell/26d6413a1eb243d4e8a1)
+
+TODO: Controller to fire it
