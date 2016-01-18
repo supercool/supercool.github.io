@@ -17,8 +17,7 @@ Also worth nothing is that I’ve used various IDs throughout the code - these c
 
 Here we simply get the elements we want to migrate and run a sub Task for each batch.
 
-{% highlight php %}
-{% raw %}
+```php
 <?php
 
 namespace Craft;
@@ -50,7 +49,7 @@ class MyPlugin_MigrateManagerTask extends BaseTask
     $criteria->enabled   = null;
     $criteria->limit     = null;
     $criteria->status    = null;
-    $criteria->sectionId = 15;
+    $criteria->sectionId = 15; // The ID of the section we are copying from
     $elements = $criteria->find();
 
     // Chunk the elements into groups of 10 - if the content is quite
@@ -81,8 +80,7 @@ class MyPlugin_MigrateManagerTask extends BaseTask
   }
 
 }
-{% endraw %}
-{% endhighlight %}
+```
 
 
 
@@ -90,8 +88,7 @@ class MyPlugin_MigrateManagerTask extends BaseTask
 
 This Task handles the heavy lifting of duplicating content and saving the new Entry.
 
-{% highlight php %}
-{% raw %}
+```php
 <?php
 
 namespace Craft;
@@ -136,34 +133,32 @@ class MyPlugin_MigrateTask extends BaseTask
   }
 
 }
-{% endraw %}
-{% endhighlight %}
+```
 
 
-So, inside the `runStep()` method we get the correct element from the settings array and migrate it to the new section.
+So, inside the `runStep()` method is where we migrate each element to the new section.
 
-{% highlight php %}
-{% raw %}
+To start with I make sure we have enough memory and get the correct element from the settings array.
+
+```php
 // Again, bump the memory
 craft()->config->set('phpMaxMemoryLimit', '2560M');
 craft()->config->maxPowerCaptain();
 
 // Get the element we want to copy from
-$element = $this->getSettings()->elements[$step];
-{% endraw %}
-{% endhighlight %}
+$sourceElement = $this->getSettings()->elements[$step];
+```
 
 
-First, check if the one we are copying to already exists or not. What you use to determine this will vary, in this case I just used the title but you may need something more bullet proof.
+Next, check if the one we are copying to already exists or not. What you use to determine this will vary, in this case I just used the title but you may need something more bullet proof.
 
-{% highlight php %}
-{% raw %}
+```php
 $criteria = craft()->elements->getCriteria(ElementType::Entry);
 $criteria->enabled   = null;
 $criteria->limit     = null;
 $criteria->status    = null;
 $criteria->sectionId = 22;
-$criteria->title     = $element->getContent()->title;
+$criteria->title     = $sourceElement->getContent()->title;
 $targetElement       = $criteria->first();
 
 // If we didn’t get an existing element, make one here
@@ -172,21 +167,21 @@ if (!$targetElement) {
   $targetElement->sectionId = 22;
   $targetElement->typeId    = 23;
 }
-{% endraw %}
-{% endhighlight %}
+```
 
-Next, copy across your field content - be aware that if the target element already exists and has content in the field then that content will be lost.
+Now we have the source and target elements sorted out we can copy across the field content - be aware that if the target element already exists and has content in the field then that content will be lost.
 
-// Copy the blocks from a Matrix field -
-// ref: https://craftcms.stackexchange.com/questions/8517/duplicating-matrix-fields-with-content-from-another-locale
+I had a large Matrix field that was the bulk of what I wanted to copy and it makes sense to deal with those first before sorting out the simpler fields. Taking my lead from [this StackExchange Q&A](https://craftcms.stackexchange.com/questions/8517/duplicating-matrix-fields-with-content-from-another-locale) I ended up with the following code to generate the Matrix Blocks:
+
+```php
 $newBlocks = array();
 $i = 0;
 
-foreach ($element->myMatrixField->find() as $block)
+foreach ($sourceElement->myMatrixField->find() as $block)
 {
   // Setup a new block
   $newBlock = new MatrixBlockModel();
-  $newBlock->fieldId = 4;
+  $newBlock->fieldId = 4; // Whatever the ID of `myMatrixField` is
   $newBlock->typeId  = $block->getType()->id;
   $newBlock->ownerId = $targetElement->id;
   $newBlock->locale  = $block->locale;
@@ -205,29 +200,38 @@ foreach ($element->myMatrixField->find() as $block)
     if (in_array($field->type, array('Assets', 'Entries', 'Categories', 'Tags'))) {
       $value = $block->$fieldHandle->ids();
     } else {
+      // For ‘normal’ fields just copy their content directly
       $value = $block->$fieldHandle;
     }
 
     $values[$fieldHandle] = $value;
   }
 
-  // Set the content on the new block
+  // Set the content on the new block and add to the array
   $newBlock->setContentFromPost($values);
-
   $newBlocks['new'.$i] = $newBlock;
   $i++;
 }
+```
+
+
+---
+
+# Here I am!
+
+---
+
 
 // Set the content on the target element
 $targetElement->setContent(array(
-  'title' => $element->getContent()->title,
+  'title' => $sourceElement->getContent()->title,
   'myMatrixField' => $newBlocks,
 
   // Same as before, just get the IDs of relationship fields
-  'someAssetField' => $element->someAssetField->ids(),
+  'someAssetField' => $sourceElement->someAssetField->ids(),
 
   // Simpler fields can just be directly copied
-  'someSimpleTextField' => $element->someSimpleTextField,
+  'someSimpleTextField' => $sourceElement->someSimpleTextField,
 ));
 
 // Wrap in a transaction in case something goes wrong
@@ -240,9 +244,9 @@ try {
     // Try and get the errors so the log is more useful
     if ($targetElement->hasErrors()) {
       $firstError = array_shift($targetElement->getErrors())[0];
-      throw new Exception(Craft::t('Couldn’t migrate from {title}. First error to correct: {error}', array('title' => $element->title, 'error' => firstError)));
+      throw new Exception(Craft::t('Couldn’t migrate from {title}. First error to correct: {error}', array('title' => $sourceElement->title, 'error' => firstError)));
     } else {
-      throw new Exception(Craft::t('Couldn’t migrate from {title}.', array('title' => $element->title)));
+      throw new Exception(Craft::t('Couldn’t migrate from {title}.', array('title' => $sourceElement->title)));
     }        
 
   }
