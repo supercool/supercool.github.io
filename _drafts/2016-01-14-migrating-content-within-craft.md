@@ -9,9 +9,11 @@ Recently as part of some site upgrades I’ve had a couple of jobs that have nee
 
 There was a bunch of content in a Matrix that was the biggest issue and a few other non-relational fields. Crucially the original content needed to remain un-touched so I couldn’t just flip the `sectionId` of the elements in the database.
 
-I’ve made heavy use of Tasks to do this so if you’ve never used Tasks before I’d suggest taking a look at Pixel & Tonics [PowerNap plugin](https://github.com/pixelandtonic/PowerNap/) for a simpler overview of how they work in general.
+I’ve made heavy use of Tasks to do this so if you’ve never used Tasks before I’d suggest taking a look at Pixel & Tonics [PowerNap plugin](https://github.com/pixelandtonic/PowerNap) for a simpler overview of how they work in general.
 
-Also worth nothing is that I’ve used various IDs throughout the code - these can be found pretty easily by just browsing to the relevant page in the control panel and find the ID from url.
+Whilst this post covers moving Entries from one section to another for the sake of simplicity the method would be similar for any kind of content within Craft; for example you might need to migrate content from Entries to your own custom Element Type as I also had to do recently.
+
+Also worth nothing is that I’ve used various IDs throughout the code - these can be found pretty easily by just browsing to the relevant page in the control panel and extracting the ID from the url.
 
 ## Task 1 - MigrationManager
 
