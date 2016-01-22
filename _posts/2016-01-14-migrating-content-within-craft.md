@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Migrating content within Craft"
-date:   2016-01-14 10:00:00
+date:   2016-01-22 13:00:00
 author: Josh Angell
 ---
 
