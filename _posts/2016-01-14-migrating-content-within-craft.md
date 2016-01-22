@@ -142,14 +142,16 @@ So, inside the `runStep()` method is where we migrate each element to the new se
 
 To start with I make sure we have enough memory and get the correct element from the settings array.
 
-```php
+{% highlight php startinline %}
+{% raw %}
 // Again, bump the memory
 craft()->config->set('phpMaxMemoryLimit', '2560M');
 craft()->config->maxPowerCaptain();
 
 // Get the element we want to copy from
 $sourceElement = $this->getSettings()->elements[$step];
-```
+{% endraw %}
+{% endhighlight %}
 
 
 Next, check if the one we are copying to already exists or not. What you use to determine this will vary, in this case I just used the title but you may need something more bullet proof.
