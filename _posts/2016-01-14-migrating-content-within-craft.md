@@ -162,7 +162,7 @@ $criteria = craft()->elements->getCriteria(ElementType::Entry);
 $criteria->enabled   = null;
 $criteria->limit     = null;
 $criteria->status    = null;
-$criteria->sectionId = 22;
+$criteria->sectionId = 22; // The ID of the section we are copying to
 $criteria->title     = $sourceElement->getContent()->title;
 $targetElement       = $criteria->first();
 
@@ -170,7 +170,7 @@ $targetElement       = $criteria->first();
 if (!$targetElement) {
   $targetElement = new EntryModel();
   $targetElement->sectionId = 22;
-  $targetElement->typeId    = 23;
+  $targetElement->typeId    = 23; // The ID of the Entry Type we want
 }
 {% endraw %}
 {% endhighlight %}
@@ -309,20 +309,16 @@ Now that we have both Tasks written we just need a way to create the manager Tas
 {% raw %}
 public function actionMigrate()
 {
-
   // Create the Task
   craft()->tasks->createTask('MyPlugin_MigrateManager');
 
-  if (!craft()->tasks->isTaskRunning())
-  {
+  if (!craft()->tasks->isTaskRunning()) {
     // Is there a pending task?
     $task = craft()->tasks->getNextPendingTask();
 
-    if ($task)
-    {
+    if ($task) {
       // Attempt to close the connection if this is an Ajax request
-      if (craft()->request->isAjaxRequest())
-      {
+      if (craft()->request->isAjaxRequest()) {
         craft()->request->close();
       }
 
@@ -330,7 +326,6 @@ public function actionMigrate()
       craft()->tasks->runPendingTasks();
     }
   }
-
 }
 {% endraw %}
 {% endhighlight %}
