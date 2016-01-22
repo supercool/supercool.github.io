@@ -343,6 +343,4 @@ $ curl --silent -H \"X-Requested-With:XMLHttpRequest\" http://mysite.co.uk/actio
 
 Thats it! You should now see the Tasks running and the content duplicating over to the new section.
 
----
-
 I have put all the code used in this post together into a gist [here](https://gist.github.com/joshangell/26d6413a1eb243d4e8a1).
