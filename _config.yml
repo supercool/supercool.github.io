@@ -22,4 +22,4 @@ authors: [
 
 
 # Build settings
-markdown: redcarpet
+markdown: kramdown
