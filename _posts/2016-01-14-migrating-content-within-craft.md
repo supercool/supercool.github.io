@@ -156,7 +156,8 @@ $sourceElement = $this->getSettings()->elements[$step];
 
 Next, check if the one we are copying to already exists or not. What you use to determine this will vary, in this case I just used the title but you may need something more bullet proof.
 
-```php
+{% highlight php startinline %}
+{% raw %}
 $criteria = craft()->elements->getCriteria(ElementType::Entry);
 $criteria->enabled   = null;
 $criteria->limit     = null;
@@ -171,13 +172,15 @@ if (!$targetElement) {
   $targetElement->sectionId = 22;
   $targetElement->typeId    = 23;
 }
-```
+{% endraw %}
+{% endhighlight %}
 
 Now we have the source and target elements sorted out we can copy across the field content - be aware that if the target element already exists and has content in the field then that content will be lost.
 
 I had a large Matrix field that was the bulk of what I wanted to copy and it makes sense to deal with those first before sorting out the simpler fields. Taking my lead from [this StackExchange Q&A](https://craftcms.stackexchange.com/questions/8517/duplicating-matrix-fields-with-content-from-another-locale) I ended up with the following code to generate the Matrix Blocks:
 
-```php
+{% highlight php startinline %}
+{% raw %}
 $newBlocks = array();
 $i = 0;
 
@@ -216,11 +219,13 @@ foreach ($sourceElement->myMatrixField->find() as $block)
   $newBlocks['new'.$i] = $newBlock;
   $i++;
 }
-```
+{% endraw %}
+{% endhighlight %}
 
 Once we have sorted out Matrix and anything else wild like [SuperTable](https://github.com/engram-design/SuperTable) (which should be pretty similar but don’t quote me on that) we can get on with setting what we’ve just done on the element along with any simpler content like so:
 
-```php
+{% highlight php startinline %}
+{% raw %}
 $targetElement->setContent(array(
   'title' => $sourceElement->getContent()->title,
 
@@ -233,11 +238,13 @@ $targetElement->setContent(array(
   // Simpler fields can just be directly copied
   'someSimpleTextField' => $sourceElement->someSimpleTextField,
 ));
-```
+{% endraw %}
+{% endhighlight %}
 
 Don’t forget to duplicate and attributes you may need, like `postDate` or whether the element is enabled or not:
 
-```php
+{% highlight php startinline %}
+{% raw %}
 $targetElement->setAttributes(array(
   'slug'          => $sourceElement->slug,
   'postDate'      => $sourceElement->postDate,
@@ -246,11 +253,13 @@ $targetElement->setAttributes(array(
   'archived'      => $sourceElement->archived,
   'localeEnabled' => $sourceElement->localeEnabled,
 ));
-```
+{% endraw %}
+{% endhighlight %}
 
 The final stage is just to save the element - in this case an Entry. I have wrapped the save method in a transaction in case anything goes wrong so we can catch and log errors without the Task hanging.
 
-```php
+{% highlight php startinline %}
+{% raw %}
 $transaction = craft()->db->getCurrentTransaction() === null ? craft()->db->beginTransaction() : null;
 try {
 
@@ -287,7 +296,8 @@ try {
 
 // Let the Task return true if nothing shifty happened above
 return true;
-```
+{% endraw %}
+{% endhighlight %}
 
 
 
@@ -295,7 +305,8 @@ return true;
 
 Now that we have both Tasks written we just need a way to create the manager Task and start it. There are a number of ways to do this but I prefer to make a simple controller action that does it:
 
-```php
+{% highlight php startinline %}
+{% raw %}
 public function actionMigrate()
 {
 
@@ -321,7 +332,8 @@ public function actionMigrate()
   }
 
 }
-```
+{% endraw %}
+{% endhighlight %}
 
 You can then either hit this action in your browser or call it via AJAX:
 
