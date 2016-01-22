@@ -214,27 +214,39 @@ foreach ($sourceElement->myMatrixField->find() as $block)
 }
 ```
 
+Once we have sorted out Matrix and anything else wild like [SuperTable](https://github.com/engram-design/SuperTable) (which should be pretty similar but don’t quote me on that) we can get on with setting what we’ve just done on the element along with any simpler content like so:
 
----
-
-# Here I am!
-
----
-
-
-// Set the content on the target element
+```php
 $targetElement->setContent(array(
   'title' => $sourceElement->getContent()->title,
+
+  // Here are the Matrix blocks we just made
   'myMatrixField' => $newBlocks,
 
-  // Same as before, just get the IDs of relationship fields
+  // Same as inside the Matrix, just get the IDs of relationship fields
   'someAssetField' => $sourceElement->someAssetField->ids(),
 
   // Simpler fields can just be directly copied
   'someSimpleTextField' => $sourceElement->someSimpleTextField,
 ));
+```
 
-// Wrap in a transaction in case something goes wrong
+Don’t forget to duplicate and attributes you may need, like `postDate` or whether the element is enabled or not:
+
+```php
+$targetElement->setAttributes(array(
+  'slug'          => $sourceElement->slug,
+  'postDate'      => $sourceElement->postDate,
+  'expiryDate'    => $sourceElement->expiryDate,
+  'enabled'       => $sourceElement->enabled,
+  'archived'      => $sourceElement->archived,
+  'localeEnabled' => $sourceElement->localeEnabled,
+));
+```
+
+The final stage is just to save the element - in this case an Entry. I have wrapped the save method in a transaction in case anything goes wrong so we can catch and log errors without the Task hanging.
+
+```php
 $transaction = craft()->db->getCurrentTransaction() === null ? craft()->db->beginTransaction() : null;
 try {
 
@@ -247,7 +259,7 @@ try {
       throw new Exception(Craft::t('Couldn’t migrate from {title}. First error to correct: {error}', array('title' => $sourceElement->title, 'error' => firstError)));
     } else {
       throw new Exception(Craft::t('Couldn’t migrate from {title}.', array('title' => $sourceElement->title)));
-    }        
+    }
 
   }
 
@@ -269,11 +281,52 @@ try {
 
 }
 
+// Let the Task return true if nothing shifty happened above
 return true;
+```
 
-TODO: probably want to document the enabled, postDate attributes etc that killed me
 
-TODO: Break code up into logical chunks and then provide a gist or zip of the
-      files at the end (https://gist.github.com/joshangell/26d6413a1eb243d4e8a1)
 
-TODO: Controller to fire it
+## Fire it off
+
+Now that we have both Tasks written we just need a way to create the manager Task and start it. There are a number of ways to do this but I prefer to make a simple controller action that does it:
+
+```php
+public function actionMigrate()
+{
+
+  // Create the Task
+  craft()->tasks->createTask('MyPlugin_MigrateManager');
+
+  if (!craft()->tasks->isTaskRunning())
+  {
+    // Is there a pending task?
+    $task = craft()->tasks->getNextPendingTask();
+
+    if ($task)
+    {
+      // Attempt to close the connection if this is an Ajax request
+      if (craft()->request->isAjaxRequest())
+      {
+        craft()->request->close();
+      }
+
+      // Start running tasks
+      craft()->tasks->runPendingTasks();
+    }
+  }
+
+}
+```
+
+You can then either hit this action in your browser or call it via AJAX:
+
+```bash
+$ curl --silent -H \"X-Requested-With:XMLHttpRequest\" http://mysite.co.uk/actions/myPlugin/migrate
+```
+
+Thats it! You should now see the Tasks running and the content duplicating over to the new section.
+
+---
+
+I have put all the code used in this post together into a gist [here](https://gist.github.com/joshangell/26d6413a1eb243d4e8a1).
